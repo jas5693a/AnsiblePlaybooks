@@ -1,0 +1,8 @@
+[]
+access = read : [ * ], write : [ admin ]
+export = system
+
+[app/install/state]
+version = 6.5.1
+modtime = 1480427997.691724000
+
