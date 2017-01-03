@@ -34,8 +34,15 @@
     - name: Copy UF file
       copy: src={{ ansible_os_family }}/splunkforwarder-{{ splunkforwarderver }}.rpm dest=/opt/splunkforwarder/splunkforwarder-{{ splunkforwarderver }}.rpm force=no
 
+    - name: Copy Erie_All_DeploymentClient Splunk App files
+      copy: src=files/erie_all_deploymentclient dest=/opt/splunkforwarder
+
     - name: Ensure Splunk universal forwarder package installed
       yum:  name=/opt/splunkforwarder/splunkforwarder-{{ splunkforwarderver }}.rpm state=present
+
+    - name: Ensure Splunk service is configured
+      copy: src=files/splunk.init dest=/etc/init.d/splunk
+            owner=splunk group=splunk mode=0755
 
     - name: Set splunk admin password
       shell: /opt/splunkforwarder/bin/splunk edit user admin -password splunk -auth admin:splunk  --accept-license
@@ -49,20 +56,50 @@
     - name: Add monitor
       shell: /opt/splunkforwarder/bin/splunk add monitor /var/log -auth admin:splunk
 
-    - name: Enable splunk boot start
-      shell: /opt/splunkforwarder/bin/splunk enable boot-start -user splunk
-
     - name: restart splunk forwarder
       shell: /opt/splunkforwarder/bin/splunk restart
 
-    - name: Ensure Splunk service is configured
-      copy: src=files/splunk.init dest=/etc/init.d/splunk
-            owner=splunk group=splunk mode=0755
-      notify:
-        - restart Splunk
+    - name: Enable splunk boot start
+      shell: /opt/splunkforwarder/bin/splunk enable boot-start -user splunk
 
     - name: Change the ownership of all the splunk related directories to the splunk user 
       shell: 'chown splunk: /opt/splunkforwarder/'
+
+    - name: Logrotate permissions chown root 
+      shell: 'chown root:root /etc/logrotate.d/syslog'
+
+    - name: Logrotate Modify permissions to 644
+      shell: 'chmod 644 /etc/logrotate.d/syslog'
+
+    - name: Adjust Ownership and permissions cron
+      shell: 'chown root:splunk /var/log/cron'
+
+    - name: Adjust Ownership to splunk user maillog
+      shell: 'chown root:splunk /var/log/maillog'
+
+    - name: Adjust Ownership to splunk user messages
+      shell: 'chown root:splunk /var/log/messages'
+
+    - name: Adjust Ownership to splunk user secure
+      shell: 'chown root:splunk /var/log/secure'
+
+    - name: Adjust Ownership to splunk user spool
+      shell: 'chown root:splunk /var/log/spooler'
+
+    - name: Change Permission G+R to splunk user cron
+      shell: 'chmod g+r /var/log/cron'
+    
+    - name: Change Permission G+R to splunk user maillog
+      shell: 'chmod g+r /var/log/maillog'
+    
+    - name: Change Permission G+R to splunk user messages
+      shell: 'chmod g+r /var/log/messages'
+    
+    - name: Change Permission G+R to splunk user spooler
+      shell: 'chmod g+r /var/log/spooler'
+    
+    
+    
     
   
 
